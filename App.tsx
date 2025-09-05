@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { fileToGenerativePart, applyBackgroundColor } from './utils/fileUtils';
 import { removeImageBackground } from './services/geminiService';
@@ -115,7 +116,15 @@ export default function App() {
     const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
     const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
     const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
-    const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
+    const [backgroundColor, setBackgroundColor] = useState<string>(() => {
+        try {
+            const savedColor = localStorage.getItem('savedBackgroundColor');
+            return savedColor || '#FFFFFF';
+        } catch (error) {
+            console.error("Could not read from localStorage", error);
+            return '#FFFFFF';
+        }
+    });
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -132,6 +141,14 @@ export default function App() {
         setProgress(0);
     }, []);
 
+    useEffect(() => {
+        try {
+            localStorage.setItem('savedBackgroundColor', backgroundColor);
+        } catch (error) {
+            console.error("Could not write to localStorage", error);
+        }
+    }, [backgroundColor]);
+    
     useEffect(() => {
         if (!processedImageUrl) {
             setFinalImageUrl(null);
